@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:9.6.24-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: main
+      POSTGRES_USER: mitsuba
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./data:/var/lib/postgresql/data

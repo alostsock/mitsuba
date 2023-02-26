@@ -1,0 +1,6 @@
+{
+  "token": "",
+  "command_prefix": "!",
+  "db_url": "postgresql://mitsuba:password@localhost:5432/main",
+  "guild_ids": [316788494502723584]
+}

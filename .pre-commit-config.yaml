@@ -1,0 +1,46 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-json
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb", "500"]
+
+  - repo: local # Rely on dependencies already in poetry's .venv
+    hooks:
+      - id: poetry-check
+        name: validate pyproject.toml
+        language: system
+        entry: poetry check
+        files: ^pyproject.toml$
+        pass_filenames: false
+
+      - id: poetry-lock
+        name: check poetry.lock
+        language: system
+        entry: poetry lock
+        args: ["--check"]
+        pass_filenames: false
+
+      - id: poetry-export
+        name: export requirements.txt
+        language: system
+        entry: poetry export
+        args: ["-f", "requirements.txt", "-o", "requirements.txt"]
+        files: ^poetry.lock$
+        pass_filenames: false
+
+      - id: isort
+        name: isort
+        language: system
+        entry: poetry run isort
+        types: [python]
+
+      - id: black
+        name: black
+        language: system
+        entry: poetry run black
+        types: [python]
