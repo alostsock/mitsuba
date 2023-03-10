@@ -33,14 +33,14 @@ repos:
         files: ^poetry.lock$
         pass_filenames: false
 
-      - id: isort
-        name: isort
-        language: system
-        entry: poetry run isort
-        types: [python]
-
       - id: black
         name: black
         language: system
         entry: poetry run black
+        types: [python]
+
+      - id: isort
+        name: isort
+        language: system
+        entry: poetry run isort
         types: [python]

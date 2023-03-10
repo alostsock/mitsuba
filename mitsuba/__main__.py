@@ -3,8 +3,12 @@ import logging
 import sys
 from logging import FileHandler, StreamHandler
 
+import discord
+
 from .bot import Bot
 from .config import read_config
+
+discord.VoiceClient.warn_nacl = False
 
 
 def parse_args():
@@ -21,6 +25,16 @@ def parse_args():
         help="Set logging level",
     )
     argparser.add_argument(
+        "--log-discord",
+        action="store_true",
+        help="Include discord.py output in logs",
+    )
+    argparser.add_argument(
+        "--log-sql",
+        action="store_true",
+        help="Include SQL output in logs",
+    )
+    argparser.add_argument(
         "--quiet",
         action="store_true",
         help="Suppress stdout",
@@ -28,40 +42,42 @@ def parse_args():
     return argparser.parse_args()
 
 
-def setup_logging(log_level: int, quiet: bool):
+def setup_logging(log_level: int, log_discord: bool, log_sql: bool, use_stdout: bool):
     formatter = logging.Formatter(
         fmt="[%(levelname)s] %(asctime)s %(name)s: %(message)s",
         datefmt="[%Y/%m/%d %H:%M:%S]",
     )
 
-    name = __package__
-    logger = logging.getLogger(name)
-    logger.setLevel(log_level)
-    file_handler = FileHandler(f"{name}.log", encoding="utf-8", mode="w")
+    file_handler = FileHandler(f"{__package__}.log", encoding="utf-8", mode="w")
     file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
 
-    discord_logger = logging.getLogger("discord")
-    discord_logger.setLevel(log_level)
-    discord_file_handler = FileHandler("discord.log", encoding="utf-8", mode="w")
-    discord_file_handler.setFormatter(formatter)
-    discord_logger.addHandler(discord_file_handler)
+    stdout_handler = StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(formatter)
 
-    if not quiet:
-        stdout_handler = StreamHandler(sys.stdout)
-        stdout_handler.setFormatter(formatter)
-        logger.addHandler(stdout_handler)
-        discord_logger.addHandler(stdout_handler)
-
-    return logger
+    for name, level, enabled in [
+        (__package__, log_level, True),
+        ("discord", logging.INFO, log_discord),
+        ("sqlalchemy.engine", logging.INFO, log_sql),
+    ]:
+        if enabled:
+            logger = logging.getLogger(name)
+            logger.setLevel(level)
+            logger.addHandler(file_handler)
+            if use_stdout:
+                logger.addHandler(stdout_handler)
 
 
 if __name__ == "__main__":
     args = parse_args()
 
-    log_level = getattr(logging, args.log_level)
-    logger = setup_logging(log_level=log_level, quiet=args.quiet)
+    setup_logging(
+        log_level=getattr(logging, args.log_level),
+        log_discord=args.log_discord,
+        log_sql=args.log_sql,
+        use_stdout=not args.quiet,
+    )
 
+    logger = logging.getLogger(__package__)
     logger.info("Starting bot...")
 
     config = read_config(args.config)

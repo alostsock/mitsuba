@@ -13,6 +13,7 @@ Here's some useful commands to start with:
 ```
 docker compose up -d
 poetry install
+poetry run alembic upgrade head
 poetry run python -m mitsuba
 ```
 
